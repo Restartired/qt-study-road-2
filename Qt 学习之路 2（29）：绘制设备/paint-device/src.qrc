@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/logo">
+        <file alias="qt-development-neon-transparent">Qt-Development-neon-transparent.png</file>
+        <file alias="qt-development-black">Qt-Development-black.png</file>
+    </qresource>
+</RCC>
