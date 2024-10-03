@@ -1,13 +1,13 @@
 #include "mainwindow.h"
+#include "constants.h"
+#include "gamecontroller.h"
 #include <QTimer>
-
-const int TILE_SIZE = 20;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
     scene(new QGraphicsScene(this)),
-    view(new QGraphicsView(scene, this))
-    // game(new GameController(*scene, this))
+    view(new QGraphicsView(scene, this)),
+    game(new GameController(scene, this))
 {
     setCentralWidget(view);
     resize(600, 600);
