@@ -1,10 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+#include "gamecontroller.h"
 
 #include <QMainWindow>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-// #include <GameController>
+
 
 // class QGraphicsScene;
 // class QGraphicsView;
@@ -27,6 +28,8 @@ private:
 
     QGraphicsScene *scene;
     QGraphicsView *view;
+
+    GameController *game;
 
     // GameController *game;
 };
