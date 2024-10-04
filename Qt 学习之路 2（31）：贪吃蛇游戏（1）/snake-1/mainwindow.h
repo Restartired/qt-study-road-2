@@ -1,15 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-#include "gamecontroller.h"
 
 #include <QMainWindow>
-#include <QGraphicsScene>
-#include <QGraphicsView>
 
-
-// class QGraphicsScene;
-// class QGraphicsView;
-// class GameController;
+class QGraphicsScene;
+class QGraphicsView;
+class GameController;
 
 class MainWindow : public QMainWindow
 {
@@ -20,9 +16,15 @@ public:
     ~MainWindow();
 
 private slots:
-    // void adjustViewSize();
+    void adjustViewSize();
+    void newGame();
+    void gameHelp();
+    void about();
 
 private:
+    void createActions();
+    void createMenus();
+
     void initScene();
     void initSceneBackground();
 
@@ -31,6 +33,12 @@ private:
 
     GameController *game;
 
-    // GameController *game;
+    QAction *newGameAction;
+    QAction *pauseAction;
+    QAction *resumeAction;
+    QAction *exitAction;
+    QAction *gameHelpAction;
+    QAction *aboutAction;
+    QAction *aboutQtAction;
 };
 #endif // MAINWINDOW_H
