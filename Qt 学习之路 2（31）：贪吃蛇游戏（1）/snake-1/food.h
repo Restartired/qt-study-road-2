@@ -6,7 +6,6 @@
 class Food : public QGraphicsItem
 {
 public:
-    Food();
     Food(qreal x, qreal y);
 
     QRectF boundingRect() const;
