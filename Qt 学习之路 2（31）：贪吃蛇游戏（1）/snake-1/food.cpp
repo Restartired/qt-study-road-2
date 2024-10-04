@@ -12,11 +12,14 @@ Food::Food(qreal x, qreal y)
     setData(GD_Type, GO_Food);
 }
 
+
+
 QRectF Food::boundingRect() const
 {
     return QRectF(-TILE_SIZE,-TILE_SIZE,
                   TILE_SIZE * 2, TILE_SIZE * 2);
 }
+
 
 
 void Food::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
@@ -28,6 +31,8 @@ void Food::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 
     painter->restore();
 }
+
+
 
 QPainterPath Food::shape() const
 {

@@ -13,16 +13,21 @@ SOURCES += \
     gamecontroller.cpp \
     main.cpp \
     mainwindow.cpp \
-    snake.cpp
+    snake.cpp \
+    wall.cpp
 
 HEADERS += \
     constants.h \
     food.h \
     gamecontroller.h \
     mainwindow.h \
-    snake.h
+    snake.h \
+    wall.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    res.qrc

@@ -1,3 +1,5 @@
+// #include <QPainter>
+
 #include "snake.h"
 #include "constants.h"
 #include "gamecontroller.h"
@@ -7,14 +9,15 @@
 static const qreal SNAKE_SIZE = TILE_SIZE;
 
 
-Snake::Snake(GameController &controller) :
+Snake::Snake(GameController *controller) :
     head(0, 0),
     growing(7),
     speed(5),
     moveDirection(NoMove),
-    controller(controller)
+    controller(*controller)
 {
 }
+
 
 
 QRectF Snake::boundingRect() const
@@ -43,6 +46,7 @@ QRectF Snake::boundingRect() const
 }
 
 
+
 QPainterPath Snake::shape() const
 {
     QPainterPath path;
@@ -59,6 +63,7 @@ QPainterPath Snake::shape() const
 }
 
 
+
 void Snake::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     painter->save();
@@ -66,56 +71,29 @@ void Snake::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *
     painter->restore();
 }
 
-void Snake::moveLeft()
+
+
+void Snake::setMoveDirection(Direction direction)
 {
-    head.rx() -= SNAKE_SIZE;
-    if (head.rx() < -100) {
-        head.rx() = 100;
-    }
+    if (moveDirection == MoveLeft && direction == MoveRight)
+        return;
+    if (moveDirection == MoveRight && direction == MoveLeft)
+        return;
+    if (moveDirection == MoveUp && direction == MoveDown)
+        return;
+    if (moveDirection == MoveDown && direction == MoveUp)
+        return;
+    moveDirection = direction;
 }
 
-void Snake::moveRight()
+
+
+Snake::Direction Snake::currentDirection()
 {
-    head.rx() += SNAKE_SIZE;
-    if (head.rx() > 100) {
-        head.rx() = -100;
-    }
+    return moveDirection;
 }
 
-void Snake::moveUp()
-{
-    head.ry() -= SNAKE_SIZE;
-    if (head.ry() < -100) {
-        head.ry() = 100;
-    }
-}
 
-void Snake::moveDown()
-{
-    head.ry() += SNAKE_SIZE;
-    if (head.ry() > 100) {
-        head.ry() = -100;
-    }
-}
-
-void Snake::handleCollisions()
-{
-    QList collisions = collidingItems();
-
-    // Check collisions with other objects on screen
-    foreach (QGraphicsItem *collidingItem, collisions) {
-        if (collidingItem->data(GD_Type) == GO_Food) {
-            // Let GameController handle the event by putting another apple
-            controller.snakeAteFood((Food *)collidingItem);
-            growing += 1;
-        }
-    }
-
-    // Check snake eating itself
-    if (tail.contains(head)) {
-        controller.snakeAteItself();
-    }
-}
 
 void Snake::advance(int step)
 {
@@ -134,27 +112,89 @@ void Snake::advance(int step)
         tail << tailPoint;
         growing -= 1;
     } else {
-        tail.takeFirst();
+        // tail.takeFirst();
+        tail.removeFirst();
         tail << head;
     }
 
     switch (moveDirection) {
-    case MoveLeft:
-        moveLeft();
-        break;
-    case MoveRight:
-        moveRight();
-        break;
-    case MoveUp:
-        moveUp();
-        break;
-    case MoveDown:
-        moveDown();
-        break;
-    default:
-        break;
+        case MoveLeft:
+            moveLeft();
+            break;
+        case MoveRight:
+            moveRight();
+            break;
+        case MoveUp:
+            moveUp();
+            break;
+        case MoveDown:
+            moveDown();
+            break;
+        default:
+            break;
     }
 
     setPos(head);
     handleCollisions();
+}
+
+
+
+void Snake::moveLeft()
+{
+    head.rx() -= SNAKE_SIZE;
+    if (head.rx() < -100) {
+        head.rx() = 100;
+    }
+}
+
+
+
+void Snake::moveRight()
+{
+    head.rx() += SNAKE_SIZE;
+    if (head.rx() > 100) {
+        head.rx() = -100;
+    }
+}
+
+
+
+void Snake::moveUp()
+{
+    head.ry() -= SNAKE_SIZE;
+    if (head.ry() < -100) {
+        head.ry() = 100;
+    }
+}
+
+
+
+void Snake::moveDown()
+{
+    head.ry() += SNAKE_SIZE;
+    if (head.ry() > 100) {
+        head.ry() = -100;
+    }
+}
+
+
+
+void Snake::handleCollisions()
+{
+    QList<QGraphicsItem *> collisions = collidingItems();
+
+    // Check collisions with other objects on screen
+    foreach (QGraphicsItem *collidingItem, collisions) {
+        if (collidingItem->data(GD_Type) == GO_Food) {
+            // Let GameController handle the event by putting another apple
+            controller.snakeAteFood((Food *)collidingItem);
+            growing += 1;
+        }
+    }
+
+    // Check snake eating itself
+    if (tail.contains(head)) {
+        controller.snakeAteItself();
+    }
 }

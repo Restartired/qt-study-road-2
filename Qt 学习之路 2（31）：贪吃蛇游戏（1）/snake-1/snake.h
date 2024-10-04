@@ -1,9 +1,11 @@
 #ifndef SNAKE_H
 #define SNAKE_H
 
+#include <QGraphicsItem>
+#include <QRectF>
+
 #include "gamecontroller.h"
 
-#include <QGraphicsItem>
 
 class Snake : public QGraphicsItem
 {
@@ -16,11 +18,14 @@ public:
         MoveDown
     };
 
-    Snake(GameController &controller);
+    Snake(GameController *controller);
 
     QRectF boundingRect() const;
     QPainterPath shape() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
+
+    void setMoveDirection(Direction direction);
+    Direction currentDirection();
 
 protected:
     void advance(int step);
