@@ -65,3 +65,96 @@ void Snake::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *
     painter->fillPath(shape(), Qt::yellow);
     painter->restore();
 }
+
+void Snake::moveLeft()
+{
+    head.rx() -= SNAKE_SIZE;
+    if (head.rx() < -100) {
+        head.rx() = 100;
+    }
+}
+
+void Snake::moveRight()
+{
+    head.rx() += SNAKE_SIZE;
+    if (head.rx() > 100) {
+        head.rx() = -100;
+    }
+}
+
+void Snake::moveUp()
+{
+    head.ry() -= SNAKE_SIZE;
+    if (head.ry() < -100) {
+        head.ry() = 100;
+    }
+}
+
+void Snake::moveDown()
+{
+    head.ry() += SNAKE_SIZE;
+    if (head.ry() > 100) {
+        head.ry() = -100;
+    }
+}
+
+void Snake::handleCollisions()
+{
+    QList collisions = collidingItems();
+
+    // Check collisions with other objects on screen
+    foreach (QGraphicsItem *collidingItem, collisions) {
+        if (collidingItem->data(GD_Type) == GO_Food) {
+            // Let GameController handle the event by putting another apple
+            controller.snakeAteFood((Food *)collidingItem);
+            growing += 1;
+        }
+    }
+
+    // Check snake eating itself
+    if (tail.contains(head)) {
+        controller.snakeAteItself();
+    }
+}
+
+void Snake::advance(int step)
+{
+    if (!step) {
+        return;
+    }
+    if (tickCounter++ % speed != 0) {
+        return;
+    }
+    if (moveDirection == NoMove) {
+        return;
+    }
+
+    if (growing > 0) {
+        QPointF tailPoint = head;
+        tail << tailPoint;
+        growing -= 1;
+    } else {
+        tail.takeFirst();
+        tail << head;
+    }
+
+    switch (moveDirection) {
+    case MoveLeft:
+        moveLeft();
+        break;
+    case MoveRight:
+        moveRight();
+        break;
+    case MoveUp:
+        moveUp();
+        break;
+    case MoveDown:
+        moveDown();
+        break;
+    default:
+        break;
+    }
+
+    setPos(head);
+    handleCollisions();
+}

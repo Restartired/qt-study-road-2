@@ -31,3 +31,33 @@ void GameController::resume()
     connect(&timer, SIGNAL(timeout()),
             &scene,  SLOT(advance()));
 }
+
+void GameController::snakeAteFood(Food *food)
+{
+    scene.removeItem(food);
+
+    addNewFood();
+}
+
+void GameController::snakeAteItself()
+{
+    QTimer::singleShot(0, this, SLOT(gameOver()));
+}
+
+void GameController::addNewFood()
+{
+    int x, y;
+
+    do {
+        x = (int)(rand() % 200) / 10 - 10;
+        y = (int)(rand() % 200) / 10 - 10;
+        //qrand()弃用
+
+        x *= 10;
+        y *= 10;
+    } while (snake->shape().contains(snake->mapFromScene(QPointF(x + 5, y + 5))));
+
+    Food *food = new Food(x, y);
+    scene.addItem(food);
+}
+

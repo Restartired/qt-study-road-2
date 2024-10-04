@@ -5,7 +5,6 @@
 
 static const qreal FOOD_RADIUS = TILE_SIZE / 4;
 
-Food::Food() {}
 
 Food::Food(qreal x, qreal y)
 {
