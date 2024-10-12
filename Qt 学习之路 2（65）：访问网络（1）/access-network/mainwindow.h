@@ -10,5 +10,10 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+private:
+    class Private;
+    friend class Private;
+    Private *d;
 };
 #endif // MAINWINDOW_H

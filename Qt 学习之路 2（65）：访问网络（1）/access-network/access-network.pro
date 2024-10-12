@@ -11,11 +11,15 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    networker.cpp
+    networker.cpp \
+    weatherdetail.cpp \
+    weatherinfo.cpp
 
 HEADERS += \
     mainwindow.h \
-    networker.h
+    networker.h \
+    weatherdetail.h \
+    weatherinfo.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
