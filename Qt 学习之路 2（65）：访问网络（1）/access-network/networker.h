@@ -12,7 +12,8 @@ public:
     static NetWorker * instance();
     ~NetWorker();
 
-    void get(const QString &url);
+    // void get(const QString &url);
+    QNetworkReply *get(const QString &url);
 signals:
     void finished(QNetworkReply *reply);
 private:

@@ -10,28 +10,42 @@
 #include <QNetworkReply>
 #include <QMessageBox>
 
+enum RemoteRequest {
+    FetchWeatherInfo,
+    FetchWeatherIcon
+};
 
 class MainWindow::Private
 {
 public:
-    Private()
+    Private(MainWindow *q) :
+        mainWindow(q)
     {
         netWorker = NetWorker::instance();
     }
 
-    void fetchWeather(const QString &cityName) const
+    void fetchWeather(const QString &cityName)
     {
-        netWorker->get(QString("http://api.openweathermap.org/data/2.5/weather?q=%1&mode=json&units=metric&lang=zh_cn&appid=YOUR API KEY").arg(cityName));
+        QNetworkReply *reply = netWorker->get(QString("http://api.openweathermap.org/data/2.5/weather?q=%1&mode=json&units=metric&lang=zh_cn&appid=YOUR API KEY").arg(cityName));
+        replyMap.insert(reply, FetchWeatherInfo);
+    }
+
+    void fetchIcon(const QString &iconName)
+    {
+        QNetworkReply *reply = netWorker->get(QString("http://openweathermap.org/img/w/%1.png").arg(iconName));
+        replyMap.insert(reply, FetchWeatherIcon);
     }
 
     NetWorker *netWorker;
+    MainWindow *mainWindow;
+    QMap<QNetworkReply *, RemoteRequest> replyMap;
 };
 
 
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-    d(new MainWindow::Private)
+    d(new MainWindow::Private(this))
 {
     QComboBox *cityList = new QComboBox(this);
     cityList->addItem(tr("Beijing"), QLatin1String("Beijing,cn"));
@@ -60,39 +74,73 @@ MainWindow::MainWindow(QWidget *parent)
     resize(320, 120);
     setWindowTitle(tr("Weather"));
 
-    connect(d->netWorker, &NetWorker::finished, [=] (QNetworkReply *reply) {
-        qDebug() << reply;
-        QJsonParseError error;
-        QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &error);
-        if (error.error == QJsonParseError::NoError) {
-            if (!(jsonDocument.isNull() || jsonDocument.isEmpty()) && jsonDocument.isObject()) {
-                QVariantMap data = jsonDocument.toVariant().toMap();
-                WeatherInfo weather;
-                weather.setCityName(data[QLatin1String("name")].toString());
-                QDateTime dateTime;
-                dateTime.setSecsSinceEpoch(data[QLatin1String("dt")].toLongLong());
-                weather.setDateTime(dateTime);
-                QVariantMap main = data[QLatin1String("main")].toMap();
-                weather.setTemperature(main[QLatin1String("temp")].toFloat());
-                weather.setPressure(main[QLatin1String("pressure")].toFloat());
-                weather.setHumidity(main[QLatin1String("humidity")].toFloat());
-                QVariantList detailList = data[QLatin1String("weather")].toList();
-                QList<WeatherDetail *> details;
-                foreach (QVariant w, detailList) {
-                    QVariantMap wm = w.toMap();
-                    WeatherDetail *detail = new WeatherDetail;
-                    detail->setDesc(wm[QLatin1String("description")].toString());
-                    detail->setIcon(wm[QLatin1String("icon")].toString());
-                    details.append(detail);
-                }
-                weather.setDetails(details);
+    QHBoxLayout *weatherDetailLayout = new QHBoxLayout;
+    weatherDetailLayout->setDirection(QBoxLayout::LeftToRight);
+    weatherLayout->addLayout(weatherDetailLayout);
+    weatherDetailLayout->addWidget(new QLabel(this));
+    weatherDetailLayout->addWidget(new QLabel(this));
 
-                cityNameLabel->setText(weather.getCityName());
-                dateTimeLabel->setText(weather.getDateTime().toString());
+    connect(d->netWorker, &NetWorker::finished, [=] (QNetworkReply *reply) {
+        // qDebug() << reply;
+        RemoteRequest request = d->replyMap.value(reply);
+        switch (request) {
+        case FetchWeatherInfo:
+        {
+            QJsonParseError error;
+            QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &error);
+            if (error.error == QJsonParseError::NoError) {
+                if (!(jsonDocument.isNull() || jsonDocument.isEmpty()) && jsonDocument.isObject()) {
+                    QVariantMap data = jsonDocument.toVariant().toMap();
+                    WeatherInfo weather;
+                    weather.setCityName(data[QLatin1String("name")].toString());
+                    QDateTime dateTime;
+                    dateTime.setSecsSinceEpoch(data[QLatin1String("dt")].toLongLong());
+                    weather.setDateTime(dateTime);
+                    QVariantMap main = data[QLatin1String("main")].toMap();
+                    weather.setTemperature(main[QLatin1String("temp")].toFloat());
+                    weather.setPressure(main[QLatin1String("pressure")].toFloat());
+                    weather.setHumidity(main[QLatin1String("humidity")].toFloat());
+                    QVariantList detailList = data[QLatin1String("weather")].toList();
+                    QList<WeatherDetail *> details;
+                    foreach (QVariant w, detailList) {
+                        QVariantMap wm = w.toMap();
+                        WeatherDetail *detail = new WeatherDetail;
+                        detail->setDesc(wm[QLatin1String("description")].toString());
+                        detail->setIcon(wm[QLatin1String("icon")].toString());
+                        details.append(detail);
+
+                        QHBoxLayout *weatherDetailLayout = (QHBoxLayout *)weatherLayout->itemAt(2)->layout();
+                        // QHBoxLayout *weatherDetailLayout = new QHBoxLayout;
+                        // weatherDetailLayout->setDirection(QBoxLayout::LeftToRight);
+                        QLabel *descLabel = (QLabel *)weatherDetailLayout->itemAt(0)->widget();
+                        descLabel->setText(detail->getDesc());
+                        // weatherDetailLayout->addWidget(new QLabel(detail->getDesc(), this));
+                        // weatherDetailLayout->addWidget(new QLabel(this));
+                        // weatherLayout->addLayout(weatherDetailLayout);
+
+                        d->fetchIcon(detail->getIcon());
+                    }
+                    weather.setDetails(details);
+
+                    cityNameLabel->setText(weather.getCityName());
+                    dateTimeLabel->setText(weather.getDateTime().toString());
+                }
+            } else {
+                QMessageBox::critical(this, tr("Error"), error.errorString());
             }
-        } else {
-            QMessageBox::critical(this, tr("Error"), error.errorString());
+            break;
         }
+        case FetchWeatherIcon:
+        {
+            QHBoxLayout *weatherDetailLayout = (QHBoxLayout *)weatherLayout->itemAt(2)->layout();
+            QLabel *iconLabel = (QLabel *)weatherDetailLayout->itemAt(1)->widget();
+            QPixmap pixmap;
+            pixmap.loadFromData(reply->readAll());
+            iconLabel->setPixmap(pixmap);
+            break;
+        }
+        }
+
         reply->deleteLater();
     });
     connect(refreshButton, &QPushButton::clicked, [=] () {

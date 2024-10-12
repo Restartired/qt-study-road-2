@@ -40,7 +40,14 @@ NetWorker::~NetWorker()
 
 
 
-void NetWorker::get(const QString &url)
+// void NetWorker::get(const QString &url)
+// {
+//     d->manager->get(QNetworkRequest(QUrl(url)));
+// }
+
+
+
+QNetworkReply * NetWorker::get(const QString &url)
 {
-    d->manager->get(QNetworkRequest(QUrl(url)));
+    return d->manager->get(QNetworkRequest(QUrl(url)));
 }
