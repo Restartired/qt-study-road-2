@@ -9,6 +9,7 @@
 #include <QJsonParseError>
 #include <QNetworkReply>
 #include <QMessageBox>
+#include <QEventLoop>
 
 enum RemoteRequest {
     FetchWeatherInfo,
@@ -26,8 +27,12 @@ public:
 
     void fetchWeather(const QString &cityName)
     {
+        QEventLoop eventLoop;
+        connect(netWorker, &NetWorker::finished,
+                &eventLoop, &QEventLoop::quit);
         QNetworkReply *reply = netWorker->get(QString("http://api.openweathermap.org/data/2.5/weather?q=%1&mode=json&units=metric&lang=zh_cn&appid=YOUR API KEY").arg(cityName));
         replyMap.insert(reply, FetchWeatherInfo);
+        eventLoop.exec();
     }
 
     void fetchIcon(const QString &iconName)
